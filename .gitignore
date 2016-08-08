@@ -12,3 +12,4 @@ pom.xml
 img/*
 *~
 *.swp
+.cljs_node_repl/

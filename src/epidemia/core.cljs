@@ -2,6 +2,7 @@
   (:require [clojure.browser.repl :as repl]
             [goog.dom :as dom]
             [goog.events :as events]
+            [epidemia.logic :as logix] 
             ))
 
 ;; (defonce conn
@@ -9,29 +10,35 @@
 
 (enable-console-print!)
 
-(def board-size 15)
+(def board-size logix/board-size)
 (def cell-px-size 48)
 
 (defn handle-mouse-click [x-cell y-cell]
   (println (+ "X: " x-cell " Y: " y-cell))
-  (let [
+  (if (= "true" (logix/make-step [x-cell y-cell])) 
+    (doall
+      (let [
         x-top-left (* x-cell cell-px-size)
         y-top-left (* (- board-size y-cell 1) cell-px-size)
         x-bottom-right (+ x-top-left cell-px-size)
         y-bottom-right (+ y-top-left cell-px-size)
         canvas (.getElementById js/document "game_board")
         ]
-    (println (+ "This cell top left corner X:" (str x-top-left) " Y: " (str y-top-left)))
-    (println (+ "This cell bottom right corner X:" (str x-bottom-right) " Y: " (str y-bottom-right)))
-    (let [
-          context (.getContext canvas "2d")
-          cross-img (.createElement js/document "img")
-          ]
-      (aset cross-img "src" "img/cross.png")
-      (aset cross-img "onload" (fn [] (dorun
+        (let [
+            context (.getContext canvas "2d")
+            cross-img (.createElement js/document "img")
+            ]
+          (aset cross-img "src" "img/cross.png")
+          (aset cross-img "onload" (fn [] (dorun
                               (.drawImage context cross-img x-top-left y-top-left)
                               )))
       )
+    )
+    (println (logix/return-neighbor-coords [x-cell y-cell]))
+    (let [cell1 (logix/get-cell [x-cell y-cell])]
+     (println (str (:status cell1))))  
+    )     
+    (println "Impossible to make step into this cell")
     )
   )
 
@@ -73,5 +80,6 @@
     )
   (.appendChild div canvas)
   (.appendChild body div)
+  (logix/init-game )
   (events/listen canvas "mousedown" print-mouse-pos)
   )
