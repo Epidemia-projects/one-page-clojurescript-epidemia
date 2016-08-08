@@ -12,12 +12,29 @@
 (def board-size 15)
 (def cell-px-size 48)
 
+(defn print-mouse-pos
+  [event]
+  (let [
+        canvas (.getElementById js/document "game_board")
+        x (- (.-offsetX event) (.-offsetLeft canvas)) 
+        y (- (.-offsetY event) (.-offsetTop canvas)) 
+        ]
+    (println (+ "In pixels: " "X: " (str x) " Y: " (str y)) )
+    (let [
+          x-cell (quot x cell-px-size)
+          y-cell (quot (- (* board-size cell-px-size) y) cell-px-size)
+          ]
+      (println (+ "In cells " "X: " (str x-cell) " Y: " (str y-cell)))
+      )
+    )
+  )
+
 (let [canvas (.createElement js/document "canvas") 
       body (.getElementById js/document "body1")
       div (.createElement js/document "div")
       boardpxsize (* cell-px-size board-size)
       ]
-  (.setAttribute canvas "id" "myCanvas")
+  (.setAttribute canvas "id" "game_board")
   (.setAttribute canvas "width" (str boardpxsize))
   (.setAttribute canvas "height" (str boardpxsize))
   (.setAttribute canvas "style" "border:none;") 
@@ -37,4 +54,5 @@
     )
   (.appendChild div canvas)
   (.appendChild body div)
+  (events/listen canvas "mousedown" print-mouse-pos)
   )
