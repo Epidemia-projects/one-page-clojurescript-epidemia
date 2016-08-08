@@ -12,20 +12,39 @@
 (def board-size 15)
 (def cell-px-size 48)
 
+(defn handle-mouse-click [x-cell y-cell]
+  (println (+ "X: " x-cell " Y: " y-cell))
+  (let [
+        x-top-left (* x-cell cell-px-size)
+        y-top-left (* (- board-size y-cell 1) cell-px-size)
+        x-bottom-right (+ x-top-left cell-px-size)
+        y-bottom-right (+ y-top-left cell-px-size)
+        canvas (.getElementById js/document "game_board")
+        ]
+    (println (+ "This cell top left corner X:" (str x-top-left) " Y: " (str y-top-left)))
+    (println (+ "This cell bottom right corner X:" (str x-bottom-right) " Y: " (str y-bottom-right)))
+    (let [
+          context (.getContext canvas "2d")
+          cross-img (.createElement js/document "img")
+          ]
+      (aset cross-img "src" "img/cross.png")
+      (aset cross-img "onload" (fn [] (dorun
+                              (.drawImage context cross-img x-top-left y-top-left)
+                              )))
+      )
+    )
+  )
+
 (defn print-mouse-pos
   [event]
   (let [
         canvas (.getElementById js/document "game_board")
         x (- (.-offsetX event) (.-offsetLeft canvas)) 
         y (- (.-offsetY event) (.-offsetTop canvas)) 
+        x-cell (quot x cell-px-size)
+        y-cell (quot (- (* board-size cell-px-size) y) cell-px-size)
         ]
-    (println (+ "In pixels: " "X: " (str x) " Y: " (str y)) )
-    (let [
-          x-cell (quot x cell-px-size)
-          y-cell (quot (- (* board-size cell-px-size) y) cell-px-size)
-          ]
-      (println (+ "In cells " "X: " (str x-cell) " Y: " (str y-cell)))
-      )
+    (handle-mouse-click x-cell y-cell) 
     )
   )
 
