@@ -15,6 +15,7 @@
   (get-cell-neighbors-coords [this v])
   (get-cell-neighbors [this v])
   (is-empty? [this v])
+  (get-corners [this])
   )
 
 (deftype Board [board board-size]
@@ -53,6 +54,15 @@
     )
   (is-empty? [this v]
     (if (= (get-cell-status this v) :empty-cell) true false)
+    )
+  (get-corners [this]
+    (let [bs  (- (.-board-size this) 1) ]
+      (list (crd/Coord. 0 0)
+            (crd/Coord. bs bs)
+            (crd/Coord. 0 bs)
+            (crd/Coord. bs 0)
+            )
+      )
     )
   )
 
