@@ -29,4 +29,12 @@
        (Coord. (+ x X) (+ y Y))
        ))
     )
+  IEquiv
+  (-equiv [this other]
+    (and 
+      (= (type this) (type other))
+      (= (.-x this) (.-x other))
+      (= (.-y this) (.-y other))
+      )
+    )
   )

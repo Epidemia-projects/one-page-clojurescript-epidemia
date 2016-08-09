@@ -7,6 +7,8 @@
 ;(def Cell epidemia.cell/Cell)
 ;(def make-new-cell epidemia.cell/make-new-cell)
 
+(defn my-or [a b] (or a b))
+
 (defprotocol IBoard
   "This object should contain state of game board and relevant methods"
   (get-cell [this v])
@@ -16,6 +18,7 @@
   (get-cell-neighbors [this v])
   (is-empty? [this v])
   (get-corners [this])
+  (cross-in-neighbors [this v])
   )
 
 (deftype Board [board board-size]
@@ -62,6 +65,11 @@
             (crd/Coord. 0 bs)
             (crd/Coord. bs 0)
             )
+      )
+    )
+  (cross-in-neighbors [this v]
+    (let [neighbors (get-cell-neighbors this v)]
+      (reduce my-or (map (fn [cell] (= (get-cell-status this cell) :crossed)) neighbors))
       )
     )
   )

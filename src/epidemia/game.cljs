@@ -4,7 +4,28 @@
             )
   )
 
-(deftype Game [board players])
+(defprotocol IGame
+  "Main game handling class"
+  (can-make-step? [this player crd])
+  (make-step [this player crd])
+  )
+
+(deftype Game [board players]
+  IGame
+  (can-make-step? [this player crd] 
+    (let [
+          cell-status (brd/get-cell-status (.-board this) crd)
+          player-start-pos (plr/get-start-position (nth players player)) 
+          ]
+      (if (not= cell-status :empty-cell)
+        false
+        (or (= player-start-pos crd) (brd/cross-in-neighbors (.-board this) crd))
+        )
+      ))
+  (make-step [this player crd]
+    (brd/change-cell-status (.-board this) crd :crossed)
+    )
+  )
 
 (defn init-game
   [board-size num-of-players]

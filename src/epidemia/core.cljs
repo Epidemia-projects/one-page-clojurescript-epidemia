@@ -2,7 +2,8 @@
   (:require [clojure.browser.repl :as repl]
             [goog.dom :as dom]
             [goog.events :as events]
-            [epidemia.logic :as logix] 
+            [epidemia.game :as gm] 
+            [epidemia.coord :as crd]
             ))
 
 ;; (defonce conn
@@ -10,35 +11,28 @@
 
 (enable-console-print!)
 
-(def board-size logix/board-size)
+(def board-size 9)
 (def cell-px-size 48)
+(def current-player 0)
 
 (defn handle-mouse-click [x-cell y-cell]
-  (println (+ "X: " x-cell " Y: " y-cell))
-  (if (= "true" (logix/make-step [x-cell y-cell])) 
-    (doall
-      (let [
+  (println (+ "X: " (str x-cell) " Y: " (str y-cell)))
+  (def mouse-click-crd (crd/Coord. x-cell y-cell))
+  (if (gm/can-make-step? game current-player mouse-click-crd) 
+    ( let [
         x-top-left (* x-cell cell-px-size)
         y-top-left (* (- board-size y-cell 1) cell-px-size)
         x-bottom-right (+ x-top-left cell-px-size)
         y-bottom-right (+ y-top-left cell-px-size)
         canvas (.getElementById js/document "game_board")
+        context (.getContext canvas "2d")
+        cross-img (.createElement js/document "img")
         ]
-        (let [
-            context (.getContext canvas "2d")
-            cross-img (.createElement js/document "img")
-            ]
-          (aset cross-img "src" "img/cross.png")
-          (aset cross-img "onload" (fn [] (dorun
+        (gm/make-step game current-player mouse-click-crd)
+        (aset cross-img "src" "img/cross.png")
+        (aset cross-img "onload" (fn [] (dorun
                               (.drawImage context cross-img x-top-left y-top-left)
-                              )))
-      )
-    )
-    (println (logix/return-neighbor-coords [x-cell y-cell]))
-    (let [cell1 (logix/get-cell [x-cell y-cell])]
-     (println (str (:status cell1))))  
-    )     
-    (println "Impossible to make step into this cell")
+                              ))))
     )
   )
 
@@ -80,6 +74,7 @@
     )
   (.appendChild div canvas)
   (.appendChild body div)
-  (logix/init-game )
+  ;(logix/init-game )
+  (def game (gm/init-game board-size 1))
   (events/listen canvas "mousedown" print-mouse-pos)
   )
