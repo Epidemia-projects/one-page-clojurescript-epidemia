@@ -1,5 +1,21 @@
 (ns epidemia.logic
-  ;;(:require epidemia.core)
+  (:require [epidemia.coord]
+            [epidemia.cell]
+            [epidemia.board]
+            )
+  )
+
+(def Coord epidemia.coord/Coord)
+(def Cell epidemia.cell/Cell)
+(def make-new-cell epidemia.cell/make-new-cell)
+
+(defprotocol IPlayer
+  "This protocol describes state of player"
+  (get-starting-position [this])
+  )
+
+(defprotocol IGame
+  "This object should contain all game logic"
   )
 
 (def board-size 15)
@@ -7,22 +23,6 @@
 (def player1-start-position [0 0])
 
 (def Game (volatile! {}))
-
-(defn create-game-board 
-  [board_size]
-  (vec 
-   (for [x (range board_size)]
-    (vec
-     (for [y (range board_size)]
-      (volatile! {:x x
-                  :y y
-                  :status :empty-cell
-                  })
-     )    
-    )
-   )
-  )
-) 
 
 (defn return-neighbor-coords
   [[x y]]
