@@ -35,10 +35,6 @@
 (defn difference [s1 s2]
   (reduce my-disj s1 s2))
 
-(defn is-cross-by-player? [cell player]
-  (and (= (cll/get-cell-status cell) :crossed)
-       (= (cll/get-owner cell) player)))
-
 (defprotocol IBoard
   "This object should contain state of game board and relevant methods"
   (get-cell [this v])
@@ -53,10 +49,6 @@
   (player-moves-into [this v player])
   (is-enabled? [this v player])
   (is-enabled-recur [this player checked to-check])
-  )
-
-(defn has-dead [v-seq]
-  (reduce my-or (map (fn [cell] (cll/get-cell-status cell))))
   )
 
 (deftype Board [board board-size]
