@@ -40,7 +40,7 @@
           board (.-board this)
           ]
       (and (available-for-step? this crd)
-           (or (= player-start-pos crd) (brd/is-enabled? board crd player)))))
+           (or (= player-start-pos crd) (brd/is-enabled? board crd player )))))
 
   (make-step [this crd]
     (let [

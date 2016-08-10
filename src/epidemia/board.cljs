@@ -51,9 +51,8 @@
   (get-corners [this])
   (has-friendly-cross? [this v-set player])
   (player-moves-into [this v player])
-  (recursive-neighbor-filled-finding [this crd-set discovered-deads player])
-  (get-neighbor-coords-with-dead [this v player])
   (is-enabled? [this v player])
+  (is-enabled-recur [this player checked to-check])
   )
 
 (defn has-dead [v-seq]
@@ -68,13 +67,8 @@
                                       y (.-y v)]
                                       (((.-board this) x) y)
                                   ) 
-          (= (type v) cll/Cell)
-                                (let [cord (cll/get-coord v)
-                                      x (.-x cord)
-                                      y (.-y cord)
-                                      ]
-                                  (((.-board this) x) y)
-                                  )))
+          (= (type v) cll/Cell) v))
+
   (get-cell-status [this v]
     (cll/get-cell-status (get-cell this v)))
 
@@ -120,9 +114,11 @@
   (player-moves-into [this v player]
     (let [cell (get-cell this v)]
       (cll/player-moves-into cell player)))
-
-  (recursive-neighbor-filled-finding [this crd-set discovered-deads player]
-    (let [
+ 
+  (is-enabled-recur [this player checked-cells to-check]
+    (if (has-friendly-cross? this to-check player)
+      true
+      (let [
           filled-crds (filter (fn [v] 
                                 (let [
                                       cell-status (get-cell-status this v)
@@ -130,32 +126,28 @@
                                       ]
                                   (and (= cell-status :filled)
                                        (= cell-owner player))))
-                              crd-set)
+                              to-check)
           ]
-      (if (empty? filled-crds)
-        crd-set
-        (let [
-              new-discovered-deads (union filled-crds discovered-deads)
-              new-cdr-set  (difference 
-                              (reduce union crd-set 
+        (if (empty? filled-crds)
+          false
+          (let [
+                new-checked (union checked-cells to-check)
+                new-to-check  (difference 
+                              (reduce union #{} 
                                   (map (fn [v] 
                                          (set (get-cell-neighbors-coords this v)))
-                                       crd-set))
-                            new-discovered-deads)
+                                       filled-crds))
+                                new-checked)
               ]
-          (recur this new-cdr-set new-discovered-deads player)))))
-  
-  (get-neighbor-coords-with-dead [this v player]
+            (recur this player new-checked new-to-check))))))
+
+  (is-enabled? [this v player ]
     (let [
-          neighbors-and-this (union #{v} (set (get-cell-neighbors-coords this v)))
+          neighbors (get-cell-neighbors-coords this v )
           ]
-      (recursive-neighbor-filled-finding this neighbors-and-this #{} player)))
-  
-  (is-enabled? [this v player]
-    (let [
-          neighbors-with-through-dead (get-neighbor-coords-with-dead this v player )
-          ]
-      (has-friendly-cross? this neighbors-with-through-dead player ))))
+      (is-enabled-recur this player #{v} (set neighbors))))
+
+)
 
 (defn create-game-board 
   [board-size]

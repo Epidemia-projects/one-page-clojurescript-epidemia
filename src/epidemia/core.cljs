@@ -13,7 +13,7 @@
 (enable-console-print!)
 
 (def board-size 9)
-(def num-of-players 4)
+(def num-of-players 2)
 (def steps-per-move 3)
 (def cell-px-size 48)
 ;(def current-player 0)
