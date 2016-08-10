@@ -8,17 +8,33 @@
 
 ;; (defonce conn
 ;;   (repl/connect "http://localhost:9000/repl"))
+;;
 
 (enable-console-print!)
 
 (def board-size 9)
+(def num-of-players 4)
+(def steps-per-move 3)
 (def cell-px-size 48)
-(def current-player 0)
+;(def current-player 0)
+
+(defn compose-img-src
+  [details]
+  (let [player (:player details)
+        status (:status details)
+        ]
+    (if (= status :crossed)
+      (+ "img/cross" (str player) ".png")
+      (+ "img/fill" (str player) ".png")
+      )
+    )
+  )
 
 (defn handle-mouse-click [x-cell y-cell]
   (println (+ "X: " (str x-cell) " Y: " (str y-cell)))
   (def mouse-click-crd (crd/Coord. x-cell y-cell))
-  (if (gm/can-make-step? game current-player mouse-click-crd) 
+  (println (gm/can-make-step? game mouse-click-crd))
+  (if (gm/can-make-step? game mouse-click-crd) 
     ( let [
         x-top-left (* x-cell cell-px-size)
         y-top-left (* (- board-size y-cell 1) cell-px-size)
@@ -26,10 +42,12 @@
         y-bottom-right (+ y-top-left cell-px-size)
         canvas (.getElementById js/document "game_board")
         context (.getContext canvas "2d")
+        details (gm/get-step-details game mouse-click-crd)
+        img-src (compose-img-src details)
         cross-img (.createElement js/document "img")
         ]
-        (gm/make-step game current-player mouse-click-crd)
-        (aset cross-img "src" "img/cross.png")
+        (gm/make-step game mouse-click-crd)
+        (aset cross-img "src" img-src)
         (aset cross-img "onload" (fn [] (dorun
                               (.drawImage context cross-img x-top-left y-top-left)
                               ))))
@@ -74,7 +92,6 @@
     )
   (.appendChild div canvas)
   (.appendChild body div)
-  ;(logix/init-game )
-  (def game (gm/init-game board-size 1))
+  (def game (gm/init-game {:board-size board-size :number-of-players num-of-players :steps-per-move steps-per-move}))
   (events/listen canvas "mousedown" print-mouse-pos)
   )
