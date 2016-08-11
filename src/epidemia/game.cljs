@@ -13,6 +13,7 @@
   (make-step [this crd])
   (next-player [this])
   (get-step-details [this crd])
+  (make-step-return-message [this crd])
   )
 
 (deftype Game [board players game-settings game-state]
@@ -51,7 +52,9 @@
       (brd/player-moves-into board crd player)
       (gmst/dec-steps gm-state)
       (if (= 0 (gmst/get-steps-left gm-state))
-        (next-player this))     
+        (next-player this)
+        false
+        )     
       ))
 
   (next-player [this]
@@ -65,6 +68,7 @@
          (gmst/set-active-player gm-state (inc player))
          (gmst/set-active-player gm-state 0))
      (gmst/set-steps-left gm-state steps-per-move)))
+
   (get-step-details [this crd]
     (let [board (.-board this)
           cell-status (brd/get-cell-status board crd)
@@ -75,6 +79,22 @@
       {:player active-player :status new-cell-status}
       )
     )
+
+  (make-step-return-message [this crd]
+    (let [
+          step-details (get-step-details this crd)
+          active-player (:player step-details)
+          new-cell-status (:status step-details)
+          change-turn? (make-step this crd)
+          action (cond (= new-cell-status :crossed) " puts cross into "
+                       (= new-cell-status :filled) " fills the cell ")
+          str-crd (+ "(" (str (.-x crd) " " (str (.-y crd) ")")))
+          message (+ "Player" (str active-player) action str-crd "\n")
+          ]
+      (if change-turn?
+        (+ message "Next players turn\n")
+        message)))
+  
   )
 
 (defn init-game 

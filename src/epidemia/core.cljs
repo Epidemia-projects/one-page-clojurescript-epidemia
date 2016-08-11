@@ -13,7 +13,7 @@
 (enable-console-print!)
 
 (def board-size 9)
-(def num-of-players 2)
+(def num-of-players 4)
 (def steps-per-move 3)
 (def cell-px-size 48)
 ;(def current-player 0)
@@ -29,11 +29,10 @@
       )
     )
   )
+;
 
 (defn handle-mouse-click [x-cell y-cell]
-  (println (+ "X: " (str x-cell) " Y: " (str y-cell)))
   (def mouse-click-crd (crd/Coord. x-cell y-cell))
-  (println (gm/can-make-step? game mouse-click-crd))
   (if (gm/can-make-step? game mouse-click-crd) 
     ( let [
         x-top-left (* x-cell cell-px-size)
@@ -45,8 +44,13 @@
         details (gm/get-step-details game mouse-click-crd)
         img-src (compose-img-src details)
         cross-img (.createElement js/document "img")
+        game-log (.getElementById js/document "game_log")
+        log-text (.-value game-log)
+        new-message (gm/make-step-return-message game mouse-click-crd)
         ]
-        (gm/make-step game mouse-click-crd)
+        ()
+        (aset game-log "value" (+ log-text new-message))    
+        (aset game-log "scrollTop" (aget game-log "scrollHeight"))
         (aset cross-img "src" img-src)
         (aset cross-img "onload" (fn [] (dorun
                               (.drawImage context cross-img x-top-left y-top-left)
@@ -69,7 +73,7 @@
 
 (let [canvas (.createElement js/document "canvas") 
       body (.getElementById js/document "body1")
-      div (.createElement js/document "div")
+      div (.getElementById js/document "column1")
       boardpxsize (* cell-px-size board-size)
       ]
   (.setAttribute canvas "id" "game_board")
@@ -91,7 +95,10 @@
                          ))
     )
   (.appendChild div canvas)
-  (.appendChild body div)
+  ;(.appendChild body div)
   (def game (gm/init-game {:board-size board-size :number-of-players num-of-players :steps-per-move steps-per-move}))
   (events/listen canvas "mousedown" print-mouse-pos)
+  (aset body "onload"  (fn []
+                         (let [game-log (.getElementById js/document "game_log") ]
+                           (aset game-log "value" "---Game Log---\n"))))
   )
