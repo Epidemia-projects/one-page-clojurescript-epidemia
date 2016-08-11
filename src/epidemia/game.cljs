@@ -11,16 +11,28 @@
  ; (is-enabled? [this crd])
   (can-make-step? [this crd])
   (make-step [this crd])
+  (cycle-alive-players [this])
   (next-player [this])
   (get-step-details [this crd])
   (make-step-return-message [this crd])
   )
 
-(deftype Game [board players game-settings game-state]
+(defn make-queue [n]
+  (reduce (fn [a b]
+            (conj a b))
+          #queue [] (range n)))
+
+(defn que-cycle [que]
+  (let [frst (peek que)
+        rst (pop que)
+        ]
+    (conj rst frst)))
+
+(deftype Game [board players game-settings game-state alive-players]
   IGame
   (available-for-step? [this crd]
      (let [
-          player (gmst/get-active-player (.-game-state this))
+          player (peek (.-alive-players this))
           board (.-board this)
           cell-status (brd/get-cell-status board crd)
           cell-owner (brd/get-cell-owner board crd) 
@@ -35,7 +47,7 @@
 
   (can-make-step? [this crd] 
     (let [
-          player (gmst/get-active-player (.-game-state this))
+          player (peek (.-alive-players this))
           board (.-board this)
           player-start-pos (plr/get-start-position (nth players player)) 
           board (.-board this)
@@ -46,7 +58,7 @@
   (make-step [this crd]
     (let [
           gm-state (.-game-state this)
-          player (gmst/get-active-player gm-state)
+          player (peek (.-alive-players this))
           board (.-board this)
           ]
       (brd/player-moves-into board crd player)
@@ -57,16 +69,19 @@
         )     
       ))
 
+  (cycle-alive-players [this]
+    (let [alive-players (.-alive-players this)]
+      (set! (.-alive-players this) (que-cycle alive-players))))
+
   (next-player [this]
     (let [
           gm-state (.-game-state this)
-          player (gmst/get-active-player gm-state)
+          active-players (cycle-alive-players this)
+          new-player (peek (.-alive-players this))
           num-of-players (:number-of-players (.-game-settings this))
           steps-per-move (:steps-per-move (.-game-settings this))
           ]
-     (if (not= player (- num-of-players 1)) 
-         (gmst/set-active-player gm-state (inc player))
-         (gmst/set-active-player gm-state 0))
+     (gmst/set-active-player gm-state new-player)
      (gmst/set-steps-left gm-state steps-per-move)))
 
   (get-step-details [this crd]
@@ -107,8 +122,9 @@
         player-corners (take numb corners)
         players (map-indexed plr/create-player player-corners)
         game-state (gmst/GameState. 0 (:steps-per-move game-settings)) 
+        alive-players (make-queue num-of-players)
         ]
-    (Game. board players game-settings game-state)
+    (Game. board players game-settings game-state alive-players)
     )
   )
 
