@@ -7,27 +7,32 @@
 
 (defprotocol IGame
   "Main game handling class"
-  (available-for-step? [this crd])
+  (available-for-step? [this crd] "Check if a cell is empty or contains rival cross")
  ; (is-enabled? [this crd])
-  (can-make-step? [this crd])
-  (make-step [this crd])
-  (cycle-alive-players [this])
-  (next-player [this])
-  (get-step-details [this crd])
-  (make-step-return-message [this crd])
+  (can-make-step? [this crd] "Check if cell is available for step and is enabled by the players own crosses")
+  (make-step [this crd] "Mute the board, cycle players if a player made his last step in a move")
+  (cycle-alive-players [this] "Cycle player queue")
+  (next-player [this] "Cycle alive players, change current player and reset number of steps left in move")
+  (get-step-details [this crd] "Return number of player making step and new cell status")
+  (make-step-return-message [this crd] "Mute game board, cycles player if necessary, return a message for a game log")
   )
 
+; Utility functions to operate on player queue
 (defn make-queue [n]
+  "Create a queue of size n"
   (reduce (fn [a b]
             (conj a b))
           #queue [] (range n)))
 
 (defn que-cycle [que]
+  "Get first element of a queue and put it in the end"
   (let [frst (peek que)
         rst (pop que)
         ]
     (conj rst frst)))
+; need a function to get element out of queue
 
+; IGame implementation
 (deftype Game [board players game-settings game-state alive-players]
   IGame
   (available-for-step? [this crd]
@@ -61,24 +66,24 @@
           player (peek (.-alive-players this))
           board (.-board this)
           ]
-      (brd/player-moves-into board crd player)
-      (gmst/dec-steps gm-state)
+      (brd/player-moves-into board crd player) ; mute
+      (gmst/dec-steps gm-state) ; mute
       (if (= 0 (gmst/get-steps-left gm-state))
-        (next-player this)
+        (next-player this) ; mute
         false
         )     
       ))
 
   (cycle-alive-players [this]
     (let [alive-players (.-alive-players this)]
-      (set! (.-alive-players this) (que-cycle alive-players))))
+      (set! (.-alive-players this) (que-cycle alive-players)))) ; mute
 
   (next-player [this]
     (let [
           gm-state (.-game-state this)
-          active-players (cycle-alive-players this)
+          active-players (cycle-alive-players this) ; mute
           new-player (peek (.-alive-players this))
-          num-of-players (:number-of-players (.-game-settings this))
+          ; num-of-players (:number-of-players (.-game-settings this))
           steps-per-move (:steps-per-move (.-game-settings this))
           ]
      (gmst/set-active-player gm-state new-player)
@@ -100,7 +105,7 @@
           step-details (get-step-details this crd)
           active-player (:player step-details)
           new-cell-status (:status step-details)
-          change-turn? (make-step this crd)
+          change-turn? (make-step this crd) ; mute
           action (cond (= new-cell-status :crossed) " puts cross into "
                        (= new-cell-status :filled) " fills the cell ")
           str-crd (+ "(" (str (.-x crd) " " (str (.-y crd) ")")))
@@ -112,6 +117,7 @@
   
   )
 
+; Create a game object
 (defn init-game 
   [game-settings]
   (let [board-size (:board-size game-settings)

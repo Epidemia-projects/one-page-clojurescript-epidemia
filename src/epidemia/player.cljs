@@ -4,10 +4,11 @@
 
 (defprotocol IPlayer
   "Player class"
-  (get-start-position [this])
-  (is-alive? [this])
+  (get-start-position [this] "Return starting position for a player")
+  (is-alive? [this] "Does this player still can make a move?")
   )
 
+; Implementation of IPlayer
 (deftype Player [number start-pos alive?]
   IPlayer
   (get-start-position [this] start-pos)
@@ -15,6 +16,7 @@
   )
 
 (defn create-player
+  "Create new player"
   [number start-position]
   (Player. number start-position true)
   )

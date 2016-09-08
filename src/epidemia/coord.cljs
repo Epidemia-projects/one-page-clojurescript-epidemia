@@ -2,12 +2,16 @@
 
 (defprotocol ICoordinates
   "Add a layer of abstraction from 2d"
-  (get-neighbor-coords [this brd-size])
+  (get-neighbor-coords [this brd-size] "Get neighboring coordintes to a given coordinate")
   )
 
+; A 2D coordinate
 (deftype Coord [x y])
 
-(defn make-coord [x y]
+
+(defn make-coord
+  "Create new 2d coordinate object"
+  [x y]
   (Coord. x y)
   )
 

@@ -12,13 +12,15 @@
 
 (enable-console-print!)
 
+; Define game constants
 (def board-size 9)
-(def num-of-players 4)
+(def num-of-players 2)
 (def steps-per-move 3)
 (def cell-px-size 48)
 ;(def current-player 0)
 
 (defn compose-img-src
+  "Determines what image should be drawn onto canvas"
   [details]
   (let [player (:player details)
         status (:status details)
@@ -32,6 +34,7 @@
 ;
 
 (defn handle-mouse-click [x-cell y-cell]
+  "Receive mouse click coordinates and decide which player make step into what cell"
   (def mouse-click-crd (crd/Coord. x-cell y-cell))
   (if (gm/can-make-step? game mouse-click-crd) 
     ( let [
@@ -59,6 +62,7 @@
   )
 
 (defn print-mouse-pos
+  "Get coordinates of mouse click and bypass it to handle-mouse-click function"
   [event]
   (let [
         canvas (.getElementById js/document "game_board")
@@ -71,6 +75,7 @@
     )
   )
 
+; Initialize the game board
 (let [canvas (.createElement js/document "canvas") 
       body (.getElementById js/document "body1")
       div (.getElementById js/document "column1")

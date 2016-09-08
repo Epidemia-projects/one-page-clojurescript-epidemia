@@ -9,48 +9,63 @@
 ;(def Cell epidemia.cell/Cell)
 ;(def make-new-cell epidemia.cell/make-new-cell)
 
-(defn my-or [a b] (or a b))
+(defn my-or
+  "Redefine or so it takes exactly 2 arguments and can be used with reduce"
+  [a b] (or a b))
 
-(defn reduce-or [_seq]
+(defn reduce-or 
+  "Reduce sequence with or"
+  [_seq]
   (reduce my-or false _seq))
 
-(defn reduce-or-on-map [_fn _seq]
+(defn reduce-or-on-map
+  "Map a function, that has to return bool on an element of a sequence, and reduce it with or"
+  [_fn _seq]
   (reduce-or (map _fn _seq)))
 
-(defn my-conj [_set v]
+(defn my-conj
+  "Add element to a set"
+  [_set v]
   (if (reduce-or-on-map (fn [el] (= el v)) _set)
     _set
     (conj _set v)))
 
-(defn my-disj [_set v]
+(defn my-disj
+  "Delete element from a set"
+  [_set v]
   (if (reduce-or-on-map (fn [el] (= el v)) _set)
     (disj _set v)
     _set))
 
-(defn union [s1 s2]
+(defn union
+  "My implementation of union operation on sets"
+  [s1 s2]
   (if (< (count s1) (count s2))
     (reduce my-conj s2 s1)
     (reduce my-conj s1 s2)))
 
-(defn difference [s1 s2]
+(defn difference
+  "My implementation of difference operation on sets"
+  [s1 s2]
   (reduce my-disj s1 s2))
 
 (defprotocol IBoard
   "This object should contain state of game board and relevant methods"
-  (get-cell [this v])
-  (get-cell-status [this v])
-  (get-cell-owner [this v])
-  (change-cell-status [this v new-status])
-  (get-cell-neighbors-coords [this v])
-  (get-cell-neighbors [this v])
-  (is-empty? [this v])
-  (get-corners [this])
-  (has-friendly-cross? [this v-set player])
-  (player-moves-into [this v player])
-  (is-enabled? [this v player])
-  (is-enabled-recur [this player checked to-check])
+  (get-cell [this v] "Returns cell object")
+  (get-cell-status [this v] "Return status of cell object")
+  (get-cell-owner [this v] "Return owner of cell object")
+  (change-cell-status [this v new-status] "Mute the cell status")
+  (get-cell-neighbors-coords [this v] "Get list of neighboring cell coordinates")
+  (get-cell-neighbors [this v] "Get list of nieghboring cell objects")
+  (is-empty? [this v] "Is this cell empty?")
+  (get-corners [this] "Return coordinates of the corners of this board")
+  (has-friendly-cross? [this v-set player] "True if there is a friendly cross in v-set of cells")
+  (player-moves-into [this v player] "Mute the game board with player moving into cell v")
+  (is-enabled? [this v player] "Check if cell v is enabled for player")
+  (is-enabled-recur [this player checked to-check] "Recursive part of is-enabled? function")
   )
 
+; Implementation of IBoard
 (deftype Board [board board-size]
   IBoard
   (get-cell [this v]
@@ -142,6 +157,7 @@
 )
 
 (defn create-game-board 
+  "Create a 2d game board of a given size and fill it with empty cells"
   [board-size]
   (Board.
     (vec 
